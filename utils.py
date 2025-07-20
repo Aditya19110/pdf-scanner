@@ -1,4 +1,6 @@
-import fitz  # PyMuPDF
+import fitz
+import re
+from collections import Counter
 
 def extract_headings(pdf_path):
     try:
@@ -6,7 +8,7 @@ def extract_headings(pdf_path):
     except Exception as e:
         print(f"Error opening PDF {pdf_path}: {e}")
         return "Untitled", []
-    
+
     text_info = []
 
     try:
@@ -19,12 +21,14 @@ def extract_headings(pdf_path):
                     for span in line.get("spans", []):
                         text = span["text"].strip()
                         if not text or len(text) < 3:
-                            continue  
+                            continue
+                        if re.match(r'^\d+$', text):
+                            continue
                         text_info.append({
                             "text": text,
-                            "size": round(span["size"], 2),
+                            "size": round(span["size"], 1),
                             "font": span["font"],
-                            "bold": "bold" in span["font"].lower(),
+                            "bold": span.get("flags", 0) & 2 != 0,
                             "page": page_num
                         })
     except Exception as e:
@@ -36,26 +40,27 @@ def extract_headings(pdf_path):
         doc.close()
         return "Untitled", []
 
-    # Sort by size descending
-    heading_candidates = sorted(text_info, key=lambda x: -x["size"])
-
-    # Get top 3 unique sizes (assumed to be H1, H2, H3)
-    unique_sizes = sorted({item["size"] for item in heading_candidates}, reverse=True)[:3]
+    # Count frequency of each font size
+    size_counts = Counter([item["size"] for item in text_info])
+    # Pick most frequent large font sizes
+    common_sizes = sorted(size_counts.items(), key=lambda x: (-x[0], -x[1]))
+    top_sizes = [size for size, _ in common_sizes[:3]]
 
     def classify(size):
-        if not unique_sizes:
+        if not top_sizes:
             return None
-        if size >= unique_sizes[0]:
+        if abs(size - top_sizes[0]) < 0.5:
             return "H1"
-        elif len(unique_sizes) > 1 and size >= unique_sizes[1]:
+        elif len(top_sizes) > 1 and abs(size - top_sizes[1]) < 0.5:
             return "H2"
-        elif len(unique_sizes) > 2 and size >= unique_sizes[2]:
+        elif len(top_sizes) > 2 and abs(size - top_sizes[2]) < 0.5:
             return "H3"
         else:
             return None
 
-    outline = []
+    heading_candidates = sorted(text_info, key=lambda x: -x["size"])
     seen = set()
+    outline = []
     for item in heading_candidates:
         level = classify(item["size"])
         key = (item["text"], item["page"])
@@ -68,7 +73,5 @@ def extract_headings(pdf_path):
             })
 
     doc.close()
-
     title = next((h["text"] for h in outline if h["level"] == "H1"), "Untitled")
-
     return title, outline
