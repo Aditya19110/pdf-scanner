@@ -19,7 +19,7 @@ def extract_headings(pdf_path):
                     for span in line.get("spans", []):
                         text = span["text"].strip()
                         if not text or len(text) < 3:
-                            continue  # ignore empty or too short
+                            continue  
                         text_info.append({
                             "text": text,
                             "size": round(span["size"], 2),
