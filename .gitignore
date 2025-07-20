@@ -1,0 +1,35 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# macOS hidden files
+.DS_Store
+
+# Output files
+/output/
+*.json
+
+# VSCode settings
+.vscode/
+
+# Docker
+*.log
+*.pid
+*.tar
+*.gz
+
+# PyMuPDF cache (optional)
+*.xref
+*.save
+
+# Input test files
+/input/*.pdf
+
+# Other project-specific
+*.pdf
