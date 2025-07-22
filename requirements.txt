@@ -1,1 +1,6 @@
 PyMuPDF
+pathlib
+onnxruntime
+transformers
+scikit-learn
+numpy

@@ -5,15 +5,12 @@ __pycache__/
 
 # Virtual environment
 venv/
-env/
-ENV/
 
 # macOS hidden files
 .DS_Store
 
 # Output files
 /output/
-*.json
 
 # VSCode settings
 .vscode/
